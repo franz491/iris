@@ -21,20 +21,20 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.1",
-    "better-auth": "^1.2.0",
-    "better-sqlite3": "^11.8.0",
+    "better-auth": "^1.7.2",
+    "better-sqlite3": "^13.0.3",
     "drizzle-orm": "^0.45.2",
-    "hono": "^4.12.34",
+    "hono": "^4.13.5",
     "yaml": "^2.7.0",
-    "zod": "^3.24.0",
+    "zod": "^4.5.4",
     "zod-to-json-schema": "^3.24.0"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.12",
-    "@types/node": "^22.13.0",
-    "@vitest/coverage-v8": "3.2.7",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.4.0",
+    "@vitest/coverage-v8": "4.1.11",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0",
-    "vitest": "^3.0.0"
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
   }
 }

@@ -1,0 +1,242 @@
+# Iris working memory
+
+Living record of current decisions and non-obvious constraints. Keep only
+facts that still affect future work; completed history belongs in code/docs.
+
+## Current architecture
+
+- Node 22 + TypeScript ESM pnpm monorepo: Hono backend, Svelte 5/Vite frontend,
+  Tauri 2 desktop shell, Vitest, native `fetch`.
+- SQLite via drizzle + better-sqlite3. Separate DBs hold chat, auth, memory,
+  prompts, keys, and config. YAML is bootstrap-only; DB state is authoritative.
+- AI output streams over SSE; audio/images use chunked binary transport.
+- Model routing is explicit. `llamacpp` uses
+  `IRIS_LLAMACPP_BASE_URL` (default `http://localhost:8080/v1`) and consumes
+  llama-server context metadata from either `meta.n_ctx` or preset-router
+  `status.args`/`status.preset`; `openai-compat` uses
+  `IRIS_OPENAI_COMPAT_BASE_URL` (default official OpenAI) and never assumes
+  provider-specific metadata. AI cards persist router and context window.
+  User-facing AI creation defaults to llama.cpp, while the lower-level legacy
+  participant default remains OpenAI-compatible for integration stability.
+- Provider container CLI is configurable (Docker/Podman compatible).
+- Text-to-speech uses the optional `tts` provider and an audio.cpp-compatible
+  HTTP generator. The admin service owns the audio.cpp model/server settings.
+  Immediate playback is transient. When replay caching is
+  enabled, WAV files are age/size bounded and persistent synthesis metadata
+  permits regeneration after eviction. Audio bytes never enter model context.
+- `iris setup` is the resumable first-run/admin wizard. Durable local defaults
+  live in `data/setup.json`; environment variables override them. It configures
+  server binding/trusted origins, the default router/model, an optional first
+  user, backend tool access, and human- or AI-assisted system-prompt review.
+  New chats obtain the configured model default through `/api/setup-info`.
+
+## Chat and reply rules
+
+- One completion handles reply choice and content. `importantInfo` is the final
+  architectural guidance block. `groupChat` adds @tag routing and public-thought safety only
+  when more than two participants are present. `noReply` teaches exact
+  `<no-reply>` silence only when `forceAiReply` is disabled.
+- Message splitting is `<new-message>`-only; a blank line never starts a new
+  message (prompts and `routeReply` agree on this).
+- In group chats, any paragraph containing resolved `@name` tags is private to
+  those participants; tags stay visible. Blank-line-separated paragraphs
+  become separately routed messages.
+- Every authored context turn is prefixed `name: `. AI contexts begin with a
+  participant roster so models can address humans and other AIs.
+- Message-driven interruption saves the partial reply with an interrupted
+  marker and immediately restarts. The explicit stop endpoint saves the marker
+  but never restarts and ignores per-chat interruption settings.
+- Editing is a destructive branch rewrite: atomically update the selected
+  message in place, delete all later/same-position abandoned versions, and
+  reset compaction cursors. A human-message edit starts fresh AI generation;
+  an AI-message edit waits for more human input. History revisions prevent an
+  in-flight completion from writing into the rewritten branch.
+- Context compacts after an AI reply when usage reaches that participant's
+  threshold (80% default). `last_compacted_message_id` must contain a message
+  ID, never a timestamp. Context loading accepts ISO timestamp cursors only as
+  compatibility for data written by the old bug, and falls back to full
+  history rather than breaking a chat if a cursor cannot be resolved.
+- Post-reply compaction uses OpenAI-standard `usage.prompt_tokens` from the
+  latest completion (including the final usage-only SSE chunk). Do not sum
+  tool-loop requests: each later prompt already includes prior exchanges.
+  When a compatible server omits usage, the fallback estimator assigns media
+  a fixed token allowance and must never count base64 bytes as text.
+- Image file messages become OpenAI `image_url` data-URI parts. Audio input is
+  enabled only by an explicitly tested runtime profile; otherwise configured
+  STT supplies text. Frontend recordings use opaque transient handles rather
+  than model-visible base64. Missing media falls back to text.
+- Persisted multi-call tool exchanges reconstruct stable call IDs from the tool
+  message ID plus batch index. Consecutive `tool` result messages must never be
+  merged, even though ordinary adjacent user/assistant turns may be.
+
+## Whisper visibility
+
+- Broadcasts are public; sender and recipients can always read a whisper.
+- AI-to-AI whispers are readable by all humans but no non-recipient AI.
+- Whispers involving a human are readable only by sender and recipients.
+- History, polling, and AI contexts enforce this server-side. Live SSE is
+  intentionally unfiltered; the frontend filters finalized messages and uses
+  the `@tag` live-preview heuristic (`canSeeLive`).
+- Always hydrate `message_recipients` before filtering. Missing `.to` silently
+  turns a whisper into an apparent broadcast.
+
+## Users and identity
+
+- BetterAuth cookie sessions. Admin CLI creates `<name>@iris.local` users and
+  supports add/list/reset-password/rename/delete.
+- Registered users can change their password or 4-6 digit PIN from frontend
+  settings; successful changes revoke their other sessions.
+- Unauthenticated sessions share one guest identity. Guests may access only
+  chats containing no registered users.
+- Named API keys live outside the chat DB and are referenced by AI participants.
+- AI cards are owner-scoped and DB-backed; avatars support small uploads or an
+  identicon fallback, with optional propagation to participants.
+
+## Tools and prompts
+
+- Tool groups have a generic `tool.md` plus one `<function>.md` per function.
+  Frontend groups run locally in Tauri; server variants appear as `backend_*`
+  and should be preferred only when explicitly requested.
+- Loaded tools contribute only compact `tool.md` descriptions. A
+  `read_tool_info` result supplies detailed function docs and schemas; the AI
+  can request them again after compaction. Memory is unprefixed, always loaded,
+  and server-executed.
+- Backend/provider configuration is admin-owned and DB-backed; frontend users
+  cannot change its folders or activation. Frontend execution settings never
+  enter the DB. Each client advertises ready tools ephemerally for one
+  chat/user/client ID, and its SSE disconnect removes that advertisement.
+- Provider `activeFunctionalities` covers internal backend availability;
+  `additionalSettings.aiAllowedFunctionalities` is the AI allowlist. Keep
+  attachment-required file operations active internally even when hidden from
+  AI tool calls.
+- `read_tool_info` always tells the AI about active and inactive tool groups.
+  Local file/docs tools require a configured root; shell requires a working
+  folder and host or Docker mode. `edit_settings` is frontend-only and may be
+  `ask` or `off`, never automatic. It opens settings but cannot change them.
+- When several humans advertise the same local tool, the call must include
+  `target_user`; the backend then targets that user's newest eligible client.
+  Only that exact authenticated user/client pair may answer the request.
+- Memory types: `agent` = facts about the AI; `behavior` = interaction rules;
+  `self` = facts about humans; `routine` = recurring procedures/tasks.
+  Memories have multiple retrieval keywords. Private entries are visible only
+  when their owner is the chat's sole human.
+- Prompt resolution order: DB override > `data/prompts/<key>.md` > built-in.
+
+## Frontend behavior
+
+- Backend URL: localStorage `iris.backendUrl` > build-time environment > same
+  origin. Requests include credentials; backend CORS uses trusted origins.
+- `state.svelte.ts` owns session, chats, messages, participants, SSE reconnect,
+  tool config, approvals, cards, and backend health.
+- Frontend tool settings are localStorage-backed per chat and authenticated
+  user (the browser profile/device supplies the client boundary). Only
+  execution-ready settings are advertised. Loaded documentation groups persist
+  per chat server-side. Export/import format is `iris.toolconfig` v3.
+- Browser/mobile clients never advertise native file, docs, shell, or audio
+  execution even if localStorage contains settings; only the desktop/Tauri
+  client may advertise them. `edit_settings` can still be offered in-browser.
+- Tauri file and docs commands receive the configured root on every call and
+  reject absolute/parent/symlink escapes. Docker shell mounts only its working
+  folder at `/sandbox`; host shell starts there but is intentionally not a
+  filesystem sandbox.
+- Typed whispers use cursor-driven `@name` completion. Resolved tags anywhere
+  set recipients and always remain visible; unknown tags remain literal.
+- Picker/paste uploads atomically create a file message. Backend startup keeps
+  internal file read/write enabled for attachments even when backend_files is
+  not exposed to an AI. The UI fetches attachments with credentials and uses
+  blob URLs, so images render with a remote backend too.
+- Inline chat renaming commits at most once: Enter consumes the key event and
+  the blur triggered by removing the input must be a no-op.
+
+## Do not rediscover
+
+- Hono's route trie can make `/auth/**` unreachable beside static chat routes.
+  Keep the separate `authApp` dispatch in `index.ts` until an upgrade is tested.
+- BetterAuth requires absolute base URLs and trusted Vite origins.
+- `pnpm approve-builds` may remove workspace packages from
+  `pnpm-workspace.yaml`; restore `backend` and `frontend` if that happens.
+- Tauri v2 plugin commands need `src-tauri/capabilities/default.json` entries.
+- Evict `ChatInstance` after mutations that invalidate cached chat state.
+
+## Planned admin control plane
+
+- The durable design and ordered implementation plan live in
+  `docs/iris/backend/admin-control-plane.md`; follow it rather than rebuilding
+  requirements from conversation history.
+- The admin GUI must work remotely for headless servers. Bootstrap is
+  localhost/SSH-tunnel by default or explicit remote bind with a short-lived
+  one-time token and TLS fingerprint; normal access requires a BetterAuth admin.
+- LLM/TTS/STT/ComfyUI installations and models may live anywhere and may be
+  shared with other applications. Services support connect-only,
+  start-and-manage, or connect-or-start. Launch configuration is one executable
+  plus argv/cwd/environment—no separate arbitrary shell-string feature.
+- Iris never stops or mutates a foreign/pre-existing service. Protocol health,
+  start locking, recorded child identity, explicit shutdown policy, and
+  redacted bounded logs are required. Managed installs are user-space only;
+  never invoke sudo.
+- Hardware/runtime capability detection covers CPU/CUDA/ROCm/Vulkan/Metal
+  locally; remote capability must be advertised or declared. Profiles bind
+  services/models/devices/resource contention policy and fallbacks.
+- Admin configuration is schema/API driven with staged diffs, validation,
+  tests, human approval, audit, and rollback. The DB stays authoritative. Do
+  not mount live configs or secrets into general files/shell sandboxes.
+- AI-assisted setup uses constrained semantic setup tools and can never read
+  keys or directly apply changes/commands. A schema-owned checklist tracks
+  not-configured/configured/verified/skipped independently of the AI.
+- TTS replay uses a bounded age/size LRU cache plus stored synthesis metadata;
+  replay regenerates evicted audio without an AI call. Audio tools use
+  file/attachment/opaque handles, never model-generated base64. Recorded audio
+  goes to explicitly audio-capable models or through an STT fallback and is
+  persisted only on explicit request.
+
+## Current follow-ups
+
+1. Follow only the unfinished work in the root `roadmap.txt`; detailed
+   constraints remain in `docs/iris/backend/admin-control-plane.md`.
+2. If a model emits literal `<think>` tags in content, add explicit parsing.
+3. Rust/Tauri commands should be compile-checked across supported platforms
+   before release packaging.
+
+## Admin control-plane status
+
+- The admin control plane lives in `src/admin/`, `/api/admin`, and the
+  frontend `/admin` shell. It imports legacy `setup.json` on first use and
+  synchronizes approved server/default-model changes back without overwriting
+  unrelated settings.
+- Patches are versioned, redacted, audited, probe-tested, approval-gated, and
+  rollbackable. Bootstrap checks the actual peer address, is localhost-only
+  unless explicitly enabled remotely, expiring, and atomically single-use.
+- Service starts use cross-process locks, owned-child tracking, process identity
+  checks, bounded redacted logs, protocol probes, and connect-or-start reuse.
+- Implemented adapters cover hardware/runtime discovery, models, profiles, TLS
+  validation, checklist state, prompt editing, opaque audio handles, persistent
+  bounded TTS replay/regeneration, explicit audio/STT routing, and persisted
+  ComfyUI workflows and operations.
+- The standalone `willReply` prompt is removed. Silence belongs to `noReply`;
+  legacy `will_reply` compatibility names remain only in older fixtures/storage
+  until a deliberate migration is completed.
+- The typed `/admin` GUI covers configuration, services (with per-service
+  runtime settings: model, acceleration cpu/cuda/rocm/vulkan/metal/remote,
+  audio input — profiles are edited here, there is no separate Profiles tab),
+  permissions, prompts (dropdown over every core + tool generic/function key via
+  `GET /api/admin/prompts`), speech cache in minutes/MB, users/sessions/passwords,
+  keys, model registry plus capability cards, approvals, testing, apply, and rollback.
+  The workflow bar is a single Validate button (stage + schema validation + live
+  service probe) plus Apply, with approvals and Rollback retained.
+- Services show a status dot (green reachable, yellow owned-but-starting) and a
+  Stop button only for running owned services.
+- Hardware discovery treats ROCm/Vulkan as available when runtime artifacts are
+  present (`/dev/kfd`, `/opt/rocm`, Vulkan ICD json) even if probe CLIs fail;
+  model-file scanning covers only `.gguf`/`.safetensors`/`.onnx` (never `.bin`).
+- `/api/admin/status` includes the effective legacy `defaultModel`; the Overview
+  and Server tabs surface a prominent default-model selector that writes the
+  `default` profile, which `applyPatch` syncs back into setup settings.
+- The manual model-registry UI is intentionally disabled dead code in
+  AdminControlPlane.svelte (commented markup + script helpers): the registry is
+  not consumed by the runtime yet. Restore it when managed model downloads make
+  `ownership: managed` authoritative; chats currently discover models through
+  each service's own endpoint.
+- `iris wipe` (pnpm wipe) deletes all DB files AND resets configuration:
+  data/setup.json and data/prompts overrides are removed so the next start is a
+  clean first run requiring `iris setup` again. An administrator-only guided setup chat may
+  stage/validate/test redacted proposals but cannot approve or apply them.

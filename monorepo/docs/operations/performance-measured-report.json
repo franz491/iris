@@ -1,0 +1,257 @@
+{
+  "version": 1,
+  "policy": "optional-measured-report",
+  "environment": {
+    "node": "v22.23.2",
+    "platform": "linux",
+    "arch": "x64",
+    "iterations": 8,
+    "warmups": 2
+  },
+  "measurements": [
+    {
+      "name": "participant-index",
+      "before": {
+        "medianMs": 5.9765709999999785,
+        "p95Ms": 14.894096999999988,
+        "opsPerSecond": 167.32002347165349,
+        "heapDeltaBytes": 485060
+      },
+      "current": {
+        "medianMs": 0.7312160000000176,
+        "p95Ms": 1.71939500000002,
+        "opsPerSecond": 1367.584954377333,
+        "heapDeltaBytes": 1232046
+      },
+      "budget": {
+        "medianMs": 1.4624320000000353,
+        "p95Ms": 3.43879000000004,
+        "opsPerSecond": 683.7924771886665,
+        "heapDeltaBytes": 2464092
+      },
+      "tolerance": 2,
+      "comparison": {
+        "beforeLabel": "linear participant scan",
+        "currentLabel": "indexed participant lookup",
+        "deltaMs": 5.245354999999961,
+        "ratio": 8.173468578367862,
+        "interpretation": "speedup"
+      }
+    },
+    {
+      "name": "prompt-construction",
+      "before": {
+        "medianMs": 0.1921429999999873,
+        "p95Ms": 0.3326809999999796,
+        "opsPerSecond": 5204.4570970582645,
+        "heapDeltaBytes": 425489
+      },
+      "current": {
+        "medianMs": 0.1921429999999873,
+        "p95Ms": 0.3326809999999796,
+        "opsPerSecond": 5204.4570970582645,
+        "heapDeltaBytes": 425489
+      },
+      "budget": {
+        "medianMs": 0.3842859999999746,
+        "p95Ms": 0.6653619999999592,
+        "opsPerSecond": 2602.2285485291322,
+        "heapDeltaBytes": 850978
+      },
+      "tolerance": 2
+    },
+    {
+      "name": "history-query",
+      "before": {
+        "medianMs": 1.6153530000000274,
+        "p95Ms": 1.7613359999999147,
+        "opsPerSecond": 619.0597349309922,
+        "heapDeltaBytes": 514634
+      },
+      "current": {
+        "medianMs": 21.448309999999992,
+        "p95Ms": 22.51169200000004,
+        "opsPerSecond": 46.62372000404696,
+        "heapDeltaBytes": 304652
+      },
+      "budget": {
+        "medianMs": 42.896619999999984,
+        "p95Ms": 45.02338400000008,
+        "opsPerSecond": 23.31186000202348,
+        "heapDeltaBytes": 609304
+      },
+      "tolerance": 2,
+      "comparison": {
+        "beforeLabel": "full SQLite history load and in-memory slicing",
+        "currentLabel": "SQLite LIMIT+1 paginated history",
+        "deltaMs": -19.832956999999965,
+        "ratio": 0.07531376597969854,
+        "interpretation": "tradeoff",
+        "firstPage": {
+          "beforeLabel": "full SQLite load then first page (100-message scope)",
+          "currentLabel": "SQLite LIMIT+1 first page (100-message scope)",
+          "deltaMs": 1.1710829999999532,
+          "ratio": 3.9630117854235047,
+          "interpretation": "speedup",
+          "beforeHeapDeltaBytes": 515227,
+          "currentHeapDeltaBytes": 322925,
+          "heapRatio": 1.5955005032128202
+        }
+      }
+    },
+    {
+      "name": "sse-fanout",
+      "before": {
+        "medianMs": 0.25645099999997,
+        "p95Ms": 0.5555090000000291,
+        "opsPerSecond": 3899.3803884567305,
+        "heapDeltaBytes": 376207
+      },
+      "current": {
+        "medianMs": 0.25645099999997,
+        "p95Ms": 0.5555090000000291,
+        "opsPerSecond": 3899.3803884567305,
+        "heapDeltaBytes": 376207
+      },
+      "budget": {
+        "medianMs": 0.51290199999994,
+        "p95Ms": 1.1110180000000582,
+        "opsPerSecond": 1949.6901942283653,
+        "heapDeltaBytes": 752414
+      },
+      "tolerance": 2
+    },
+    {
+      "name": "tool-loop",
+      "before": {
+        "medianMs": 0.13086900000007518,
+        "p95Ms": 0.19201699999996436,
+        "opsPerSecond": 7641.229015270427,
+        "heapDeltaBytes": 177492
+      },
+      "current": {
+        "medianMs": 0.13086900000007518,
+        "p95Ms": 0.19201699999996436,
+        "opsPerSecond": 7641.229015270427,
+        "heapDeltaBytes": 177492
+      },
+      "budget": {
+        "medianMs": 0.26173800000015035,
+        "p95Ms": 0.3840339999999287,
+        "opsPerSecond": 3820.6145076352136,
+        "heapDeltaBytes": 354984
+      },
+      "tolerance": 2
+    },
+    {
+      "name": "compaction",
+      "before": {
+        "medianMs": 0.10394299999995837,
+        "p95Ms": 0.13395300000001953,
+        "opsPerSecond": 9620.657475735745,
+        "heapDeltaBytes": 150002
+      },
+      "current": {
+        "medianMs": 0.10394299999995837,
+        "p95Ms": 0.13395300000001953,
+        "opsPerSecond": 9620.657475735745,
+        "heapDeltaBytes": 150002
+      },
+      "budget": {
+        "medianMs": 0.20788599999991675,
+        "p95Ms": 0.26790600000003906,
+        "opsPerSecond": 4810.328737867872,
+        "heapDeltaBytes": 300004
+      },
+      "tolerance": 2
+    },
+    {
+      "name": "file-transfer",
+      "before": {
+        "medianMs": 0.2547190000000228,
+        "p95Ms": 0.36125399999991714,
+        "opsPerSecond": 3925.894809574121,
+        "heapDeltaBytes": 265636
+      },
+      "current": {
+        "medianMs": 0.2547190000000228,
+        "p95Ms": 0.36125399999991714,
+        "opsPerSecond": 3925.894809574121,
+        "heapDeltaBytes": 265636
+      },
+      "budget": {
+        "medianMs": 0.5094380000000456,
+        "p95Ms": 0.7225079999998343,
+        "opsPerSecond": 1962.9474047870606,
+        "heapDeltaBytes": 531272
+      },
+      "tolerance": 2
+    },
+    {
+      "name": "admin-load",
+      "before": {
+        "medianMs": 0.0633820000000469,
+        "p95Ms": 0.11599100000000817,
+        "opsPerSecond": 15777.35003627623,
+        "heapDeltaBytes": 30315
+      },
+      "current": {
+        "medianMs": 0.0633820000000469,
+        "p95Ms": 0.11599100000000817,
+        "opsPerSecond": 15777.35003627623,
+        "heapDeltaBytes": 30315
+      },
+      "budget": {
+        "medianMs": 0.1267640000000938,
+        "p95Ms": 0.23198200000001634,
+        "opsPerSecond": 7888.675018138115,
+        "heapDeltaBytes": 60630
+      },
+      "tolerance": 2
+    },
+    {
+      "name": "startup",
+      "before": {
+        "medianMs": 0.007973000000106367,
+        "p95Ms": 0.01064900000005764,
+        "opsPerSecond": 125423.30364814488,
+        "heapDeltaBytes": 8813
+      },
+      "current": {
+        "medianMs": 0.007973000000106367,
+        "p95Ms": 0.01064900000005764,
+        "opsPerSecond": 125423.30364814488,
+        "heapDeltaBytes": 8813
+      },
+      "budget": {
+        "medianMs": 0.015946000000212734,
+        "p95Ms": 0.02129800000011528,
+        "opsPerSecond": 62711.65182407244,
+        "heapDeltaBytes": 17626
+      },
+      "tolerance": 2
+    },
+    {
+      "name": "tool-doc-cache",
+      "before": {
+        "medianMs": 0.023250999999959276,
+        "p95Ms": 0.024122999999917738,
+        "opsPerSecond": 43008.902842963806,
+        "heapDeltaBytes": 27592
+      },
+      "current": {
+        "medianMs": 0.023250999999959276,
+        "p95Ms": 0.024122999999917738,
+        "opsPerSecond": 43008.902842963806,
+        "heapDeltaBytes": 27592
+      },
+      "budget": {
+        "medianMs": 0.04650199999991855,
+        "p95Ms": 0.048245999999835476,
+        "opsPerSecond": 21504.451421481903,
+        "heapDeltaBytes": 55184
+      },
+      "tolerance": 2
+    }
+  ]
+}

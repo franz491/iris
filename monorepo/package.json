@@ -1,0 +1,47 @@
+{
+  "name": "iris-monorepo",
+  "private": true,
+  "packageManager": "pnpm@11.22.0",
+  "engines": {
+    "node": ">=22.13.0 <23"
+  },
+  "scripts": {
+    "dev:backend": "pnpm --filter @iris/backend dev",
+    "dev:frontend": "pnpm --filter @iris/frontend dev",
+    "build": "pnpm -r build",
+    "clean:check": "node scripts/clean-check.mjs",
+    "docs:check": "node scripts/docs-check.mjs",
+    "docs:check:test": "node --test tests/docs-check.test.mjs",
+    "audit:high": "pnpm audit --audit-level high",
+    "audit:policy": "node scripts/audit-policy.mjs",
+    "format": "prettier --write \"../README.md\" \"package.json\" \"backend/src/**/*.{ts,js,json,md}\" \"backend/tests/**/*.{ts,js,json,md}\" \"backend/package.json\" \"frontend/src/**/*.{ts,svelte,js,json,md}\" \"frontend/tests/**/*.{ts,js,json,md}\" \"frontend/package.json\" \"frontend/*.json\"",
+    "format:check": "prettier --check \"../README.md\" \"package.json\" \"backend/src/**/*.{ts,js,json,md}\" \"backend/tests/**/*.{ts,js,json,md}\" \"backend/package.json\" \"frontend/src/**/*.{ts,svelte,js,json,md}\" \"frontend/tests/**/*.{ts,js,json,md}\" \"frontend/package.json\" \"frontend/*.json\"",
+    "clean:check:test": "node --test tests/clean-check.test.mjs",
+    "secret:check": "node scripts/secret-check.mjs",
+    "ci:check": "node scripts/ci-check.mjs",
+    "ci:check:test": "node --test tests/ci-workflow.test.mjs",
+    "quality:policy:test": "node --test tests/quality-policy.test.mjs",
+    "license:check": "node scripts/license-check.mjs",
+    "license:check:test": "node --test tests/license-check.test.mjs",
+    "sbom:check": "node scripts/sbom.mjs",
+    "sbom:check:test": "node --test tests/sbom.test.mjs",
+    "artifact:check:test": "node --test tests/artifact-checksum.test.mjs",
+    "artifact:check": "node scripts/artifact-checksum.mjs",
+    "coverage:critical": "pnpm --filter @iris/backend coverage:critical",
+    "test": "pnpm --filter @iris/backend test && pnpm --filter @iris/frontend test",
+    "lint": "pnpm --filter @iris/backend lint && pnpm --filter @iris/frontend lint",
+    "typecheck": "pnpm --filter @iris/backend typecheck && pnpm --filter @iris/frontend check",
+    "rust:check": "pnpm --filter @iris/frontend rust:check",
+    "verify": "pnpm ci:check && pnpm ci:check:test && pnpm quality:policy:test && pnpm docs:check && pnpm docs:check:test && pnpm license:check && pnpm license:check:test && pnpm sbom:check && pnpm sbom:check:test && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm rust:check && pnpm secret:check && pnpm coverage:critical",
+    "wipe": "pnpm --filter @iris/backend wipe"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
+    "prettier": "^3.9.6",
+    "prettier-plugin-svelte": "^4.1.1"
+  }
+}

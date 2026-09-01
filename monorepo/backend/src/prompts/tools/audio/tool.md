@@ -1,0 +1,1 @@
+Use audio devices on the user's machine: list devices, play a WAV file, or record a mono 16-bit WAV into the files sandbox. This tool is available only when the files tool is active. Always get permission immediately before recording.

@@ -1,0 +1,1 @@
+Generate speech and play it through connected users' audio output. The generator may run here, on another GPU machine, or behind a compatible service. Use speech only when the user asks for spoken audio or when it directly fulfills their request. Do not narrate, mirror, or replay every normal text response.

@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /monorepo
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    groups:
+      pnpm-dependencies:
+        patterns:
+          - "*"
+  - package-ecosystem: cargo
+    directory: /monorepo/frontend/src-tauri
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    groups:
+      cargo-dependencies:
+        patterns:
+          - "*"

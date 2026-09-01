@@ -1,0 +1,25 @@
+[package]
+rust-version = "1.98"
+name = "iris"
+version = "0.1.0"
+description = "Iris desktop client — native tool execution for the AI"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+portable-pty = "0.8"
+uuid = { version = "1", features = ["v4"] }
+tauri-plugin-shell = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+regex = "1"
+cpal = "0.15"
+hound = "3"
+base64 = "0.22"
+libc = "0.2"
+tokio = { version = "1", features = ["process", "io-util"] }

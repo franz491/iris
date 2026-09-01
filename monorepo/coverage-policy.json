@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "ratchet": "non-decreasing",
+  "criticalModules": [
+    "src/net/pinned-http.ts",
+    "src/api/auth.ts",
+    "src/api/binary-limits.ts",
+    "src/api/files.ts",
+    "src/model-router/openai-compat.ts"
+  ],
+  "thresholds": {
+    "lines": 70,
+    "functions": 60,
+    "branches": 55,
+    "statements": 70
+  }
+}

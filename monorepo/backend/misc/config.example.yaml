@@ -1,0 +1,61 @@
+# Example provider configuration for Iris (`<dataDir>/config.yaml`).
+#
+# The yaml is a BOOTSTRAP source only: on first start (empty config DB) each
+# top-level key becomes a provider row in the DB. After that, runtime changes
+# go to the DB and the yaml is ignored until you delete the DB or pass
+# overrideDb=true.
+#
+# Format: one key per provider name; `activeFunctionalities` lists which of
+# the provider's functionalities are callable; `additionalSettings` carries
+# provider-specific options.
+
+files:
+  activeFunctionalities:
+    - create_file
+    - read_file
+    - search_and_replace
+    - edit_file
+    - edit_lines
+  additionalSettings:
+    rootFolder: files/
+    dockerExecutable: docker   # podman etc. also work
+    dockerImage: alpine:latest
+    timeoutMs: 30000
+
+shell:
+  activeFunctionalities:
+    - shell_oneshot
+    - shell_interactive
+  additionalSettings:
+    shellFolder: shell/
+
+docs:
+  activeFunctionalities:
+    - list_docs
+    - read_structure
+    - read_file
+    - search
+    - search_regex
+  additionalSettings:
+    docsFolder: docs/
+    maxOutputSize: 10000
+
+# Always-on AI memory (auto-activated with these settings on fresh installs).
+memory:
+  activeFunctionalities:
+    - list_keywords
+    - list_memories
+    - add_memory
+    - remove_memory
+  additionalSettings: {}
+
+# Optional providers — uncomment when configured:
+# audio:
+#   activeFunctionalities: [refresh_devices, stream_audio, read_audio]
+#   additionalSettings:
+#     deviceBlacklist: []
+#     deviceRenamelist: {}
+#     minAudioInput: 0.0
+# search:
+#   activeFunctionalities: [search]
+#   additionalSettings: {}

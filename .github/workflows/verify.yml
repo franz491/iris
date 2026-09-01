@@ -1,0 +1,85 @@
+name: verify
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.22.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: pnpm
+          cache-dependency-path: monorepo/pnpm-lock.yaml
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            monorepo/frontend/src-tauri/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('monorepo/frontend/src-tauri/Cargo.lock', 'monorepo/rust-toolchain.toml') }}
+          restore-keys: cargo-${{ runner.os }}-
+      - name: Install dependencies
+        working-directory: monorepo
+        run: pnpm install --frozen-lockfile
+      - name: Dependency vulnerability policy
+        working-directory: monorepo
+        run: pnpm audit:policy
+      - name: Verify
+        working-directory: monorepo
+        run: pnpm verify
+      - name: Clean output check
+        working-directory: monorepo
+        run: pnpm clean:check
+      - name: Upload critical coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: critical-coverage-linux
+          path: monorepo/backend/coverage
+          if-no-files-found: ignore
+
+  platform-smoke:
+    name: platform smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.22.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: pnpm
+          cache-dependency-path: monorepo/pnpm-lock.yaml
+      - name: Install dependencies
+        working-directory: monorepo
+        run: pnpm install --frozen-lockfile
+      - name: Backend typecheck, tests, and build
+        working-directory: monorepo
+        run: pnpm --filter @iris/backend typecheck && pnpm --filter @iris/backend test && pnpm --filter @iris/backend build
+      - name: Frontend typecheck, tests, and build
+        working-directory: monorepo
+        run: pnpm --filter @iris/frontend check && pnpm --filter @iris/frontend test && pnpm --filter @iris/frontend build
+      - name: Clean output check
+        working-directory: monorepo
+        run: pnpm clean:check

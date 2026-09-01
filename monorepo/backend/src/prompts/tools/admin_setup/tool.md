@@ -1,0 +1,1 @@
+Read redacted configuration and schema choices, discuss each unfinished checklist section, then stage and validate a complete proposal. Validation also runs the service tests. Never request secrets. You cannot approve or apply changes; the human must do that in `/admin`.

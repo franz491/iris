@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "policy": "Every IRIS-012 limit has an owned enforcement seam and regression evidence; configurability is explicit rather than implied.",
+  "runtimePolicy": {
+    "source": "backend/src/config/runtime-limits.ts",
+    "environment": "Values are read once at process startup, validated as safe integers, and clamped to documented bounds.",
+    "variables": {
+      "jsonBodyBytes": "IRIS_MAX_JSON_BODY_BYTES",
+      "jsonBodyTimeoutMs": "IRIS_JSON_BODY_TIMEOUT_MS",
+      "attachmentBytes": "IRIS_MAX_ATTACHMENT_BYTES",
+      "audioHandleBytes": "IRIS_MAX_AUDIO_HANDLE_BYTES",
+      "transientAudioEntries": "IRIS_MAX_TRANSIENT_AUDIO_ENTRIES",
+      "transientAudioBytes": "IRIS_MAX_TRANSIENT_AUDIO_BYTES",
+      "sttBytes": "IRIS_MAX_STT_BYTES",
+      "openAiStreamBytes": "IRIS_MAX_OPENAI_STREAM_BYTES",
+      "openAiSseLineBytes": "IRIS_MAX_OPENAI_SSE_LINE_BYTES",
+      "toolArgumentBytes": "IRIS_MAX_TOOL_ARGUMENT_BYTES",
+      "toolArgumentDepth": "IRIS_MAX_TOOL_ARGUMENT_DEPTH",
+      "toolArgumentFields": "IRIS_MAX_TOOL_ARGUMENT_FIELDS",
+      "toolResultBytes": "IRIS_MAX_TOOL_RESULT_BYTES",
+      "toolStorageBytes": "IRIS_MAX_TOOL_STORAGE_BYTES",
+      "searchResponseBytes": "IRIS_MAX_SEARCH_RESPONSE_BYTES",
+      "ttsErrorBytes": "IRIS_MAX_TTS_ERROR_BYTES",
+      "ttsRequestBytes": "IRIS_MAX_TTS_REQUEST_BYTES",
+      "ttsAudioBytes": "IRIS_MAX_TTS_AUDIO_BYTES",
+      "avatarBytes": "IRIS_MAX_AVATAR_BYTES",
+      "promptBytes": "IRIS_MAX_PROMPT_BYTES",
+      "promptImportBytes": "IRIS_MAX_PROMPT_IMPORT_BYTES",
+      "promptValueBytes": "IRIS_MAX_PROMPT_VALUE_BYTES",
+      "promptKeyBytes": "IRIS_MAX_PROMPT_KEY_BYTES",
+      "promptCount": "IRIS_MAX_PROMPT_COUNT",
+      "logBytes": "IRIS_MAX_LOG_BYTES",
+      "comfyJsonDepth": "IRIS_MAX_COMFY_JSON_DEPTH",
+      "comfyJsonKeys": "IRIS_MAX_COMFY_JSON_KEYS",
+      "comfyJsonStringBytes": "IRIS_MAX_COMFY_JSON_STRING_BYTES",
+      "modelActive": "IRIS_MAX_ACTIVE_MODEL_REQUESTS",
+      "credentialActive": "IRIS_MAX_ACTIVE_CREDENTIAL_OPERATIONS",
+      "configActive": "IRIS_MAX_ACTIVE_CONFIG_OPERATIONS",
+      "limiterKeyCapacity": "IRIS_LIMITER_KEY_CAPACITY",
+      "uploadPerWindow": "IRIS_UPLOAD_LIMIT_PER_WINDOW",
+      "guestAccessPerWindow": "IRIS_GUEST_ACCESS_LIMIT_PER_WINDOW",
+      "guestMessagesPerWindow": "IRIS_GUEST_MESSAGE_LIMIT_PER_WINDOW",
+      "serviceProbesPerWindow": "IRIS_SERVICE_PROBE_LIMIT_PER_WINDOW",
+      "abuseWindowMs": "IRIS_ABUSE_WINDOW_MS",
+      "chatInstanceCacheEntries": "IRIS_CHAT_INSTANCE_CACHE_ENTRIES",
+      "chatToolConfigEntries": "IRIS_CHAT_TOOL_CONFIG_ENTRIES",
+      "builtinPromptCacheEntries": "BUILTIN_PROMPT_CACHE_MAX_ENTRIES"
+    }
+  },
+  "limits": [
+    {
+      "category": "json",
+      "limit": "MAX_JSON_BODY_BYTES",
+      "owner": "backend/src/api/json-limits.ts",
+      "enforcement": "main and admin router probe",
+      "tests": "backend/tests/json-limits.test.ts",
+      "configurability": "fixed conservative default"
+    },
+    {
+      "category": "avatar/data-uri",
+      "limit": "IRIS_MAX_AVATAR_BYTES",
+      "owner": "backend/src/config/runtime-limits.ts; backend/src/api/api.ts",
+      "enforcement": "AI card schemas",
+      "tests": "backend/tests/runtime-limits.test.ts",
+      "configurability": "validated environment override"
+    },
+    {
+      "category": "file upload/download",
+      "limit": "MAX_ATTACHMENT_BYTES",
+      "owner": "backend/src/api/binary-limits.ts",
+      "enforcement": "streaming attachment route and FilesProvider",
+      "tests": "backend/tests/attachments.test.ts",
+      "configurability": "fixed conservative default"
+    },
+    {
+      "category": "audio handle",
+      "limit": "MAX_AUDIO_HANDLE_BYTES",
+      "owner": "backend/src/api/binary-limits.ts",
+      "enforcement": "audio-handle bounded reader",
+      "tests": "backend/tests/audio-handle-api.test.ts",
+      "configurability": "fixed conservative default"
+    },
+    {
+      "category": "STT body",
+      "limit": "MAX_STT_BYTES and MAX_AUDIO_BYTES",
+      "owner": "backend/src/api/binary-limits.ts; backend/src/admin/stt.ts",
+      "enforcement": "route reader and provider multipart guard",
+      "tests": "backend/tests/admin-stt.test.ts",
+      "configurability": "fixed conservative default"
+    },
+    {
+      "category": "streaming chunks",
+      "limit": "MAX_STREAM_RESPONSE_BYTES and MAX_SSE_LINE_BYTES",
+      "owner": "backend/src/model-router/openai-compat.ts",
+      "enforcement": "stream parser and reader cancellation",
+      "tests": "backend/tests/openai-compat-usage.test.ts",
+      "configurability": "fixed conservative default"
+    },
+    {
+      "category": "tool arguments/results",
+      "limit": "MAX_TOOL_ARGUMENT_BYTES and MAX_STORED_TOOL_RESULT_BYTES",
+      "owner": "backend/src/chat/tools.ts; backend/src/chat/ai-participants.ts",
+      "enforcement": "tool parser and persisted-call boundary",
+      "tests": "backend/tests/tool-arguments-boundary.test.ts",
+      "configurability": "fixed conservative default"
+    },
+    {
+      "category": "prompt/workflow",
+      "limit": "IRIS_MAX_PROMPT_BYTES, IRIS_MAX_PROMPT_IMPORT_BYTES, IRIS_MAX_PROMPT_VALUE_BYTES, IRIS_MAX_PROMPT_KEY_BYTES, IRIS_MAX_PROMPT_COUNT; ComfyUI JSON limits",
+      "owner": "backend/src/config/runtime-limits.ts; backend/src/api/admin.ts; backend/src/prompts/transfer.ts; backend/src/admin/comfyui.ts",
+      "enforcement": "strict schemas, bounded import, and provider parser",
+      "tests": "backend/tests/runtime-limits.test.ts; backend/tests/comfyui.test.ts",
+      "configurability": "validated environment override"
+    },
+    {
+      "category": "log retention",
+      "limit": "IRIS_MAX_LOG_BYTES",
+      "owner": "backend/src/config/runtime-limits.ts; backend/src/misc/logging.ts",
+      "enforcement": "bounded rotating file logger",
+      "tests": "backend/tests/runtime-limits.test.ts; backend/tests/misc.test.ts",
+      "configurability": "validated environment override"
+    },
+    {
+      "category": "concurrent regenerations",
+      "limit": "MAX_ACTIVE_MODEL_REQUESTS",
+      "owner": "backend/src/api/model-admission.ts",
+      "enforcement": "account/source atomic leases",
+      "tests": "backend/tests/model-admission.test.ts",
+      "configurability": "fixed policy bound"
+    },
+    {
+      "category": "built-in prompt cache",
+      "limit": "BUILTIN_PROMPT_CACHE_MAX_ENTRIES",
+      "owner": "backend/src/prompts/library.ts",
+      "enforcement": "bounded FIFO cache with shutdown clear; local overrides bypass cache",
+      "tests": "backend/tests/prompts.test.ts",
+      "configurability": "fixed conservative default"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "@iris/backend",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "test:property": "vitest run --config vitest.config.ts tests/limits-property.test.ts",
+    "recovery:drill:test": "vitest run --config vitest.config.ts tests/recovery.test.ts tests/recovery-cli.test.ts",
+    "recovery:retention:drill:test": "vitest run --config vitest.config.ts tests/recovery-retention-drill.test.ts",
+    "reconciliation:phase": "pnpm build >/dev/null && node dist/scripts/reconciliation-phase-harness.js",
+    "test:critical": "vitest run --config vitest.config.ts tests/pinned-http.test.ts tests/admin-auth.test.ts tests/json-limits.test.ts tests/binary-limits.test.ts tests/attachment-signature.test.ts tests/attachments.test.ts tests/openai-compat-usage.test.ts",
+    "performance:check": "vitest run --config vitest.config.ts tests/prompt-construction.performance.test.ts tests/history-query.performance.test.ts tests/sse-fanout.performance.test.ts tests/tool-loop.performance.test.ts tests/compaction.performance.test.ts tests/file-transfer.performance.test.ts tests/admin-load.performance.test.ts tests/startup.performance.test.ts tests/performance-baseline.test.ts",
+    "performance:report": "tsx scripts/performance-report.ts",
+    "performance:compare": "tsx scripts/performance-report.ts --compare ../docs/operations/performance-measured-report.json",
+    "coverage:critical": "vitest run --config vitest.config.ts --coverage tests/pinned-http.test.ts tests/admin-auth.test.ts tests/json-limits.test.ts tests/binary-limits.test.ts tests/attachment-signature.test.ts tests/attachments.test.ts tests/openai-compat-usage.test.ts",
+    "wipe": "tsx src/cli.ts wipe",
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.1",
+    "better-auth": "^1.2.0",
+    "better-sqlite3": "^11.8.0",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.12.34",
+    "yaml": "^2.7.0",
+    "zod": "^3.24.0",
+    "zod-to-json-schema": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.13.0",
+    "@vitest/coverage-v8": "3.2.7",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

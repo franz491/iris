@@ -1,0 +1,8 @@
+{
+  "cadence": "monthly",
+  "lockfile": "pnpm-lock.yaml",
+  "frozenInstallRequired": true,
+  "automatedMajorUpdates": false,
+  "reviewRequired": true,
+  "emergencySecurityUpdates": "maintainer-reviewed expedited update with full verification"
+}

@@ -1,0 +1,60 @@
+# Iris machine-local state and tool session artifacts
+:memory:.ses
+.pi/
+.agents/
+.codex/
+monorepo/backend/data/
+monorepo/backend/files/
+monorepo/files/
+monorepo/backend/data/*.db
+monorepo/backend/data/*.db-wal
+monorepo/backend/data/*.db-shm
+monorepo/backend/data/setup.json
+monorepo/backend/data/locks/
+monorepo/backend/data/tts-cache/
+monorepo/backend/data/software/
+
+# Reproducible dependency and build outputs
+**/node_modules/
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.cache/
+monorepo/backend/dist/
+monorepo/frontend/dist/
+monorepo/frontend/src-tauri/target/
+*.tsbuildinfo
+
+# Local tooling output and credentials
+coverage/
+*.log
+*.tmp
+*.swp
+*.swo
+.tmp/
+tmp/
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Databases, credentials, and machine identities must never enter source control
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.cer
+
+# IDE and operating-system metadata
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

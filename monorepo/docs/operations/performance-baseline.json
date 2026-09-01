@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "policy": "operation-and-data-counts-only",
+  "benchmarks": [
+    {
+      "name": "participant-index",
+      "baseline": { "mapCalls": 13, "lookups": 10000 },
+      "current": { "mapCalls": 13, "lookups": 10000 },
+      "budget": { "mapCalls": 13, "lookups": 10000 }
+    },
+    {
+      "name": "prompt-construction",
+      "baseline": { "messages": 5000, "aiParticipants": 2, "contexts": 2 },
+      "current": { "messages": 5000, "aiParticipants": 2, "contexts": 2 },
+      "budget": { "messages": 5000, "aiParticipants": 2, "contexts": 2 }
+    },
+    {
+      "name": "history-query",
+      "baseline": { "pages": 50, "returned": 5000 },
+      "current": { "pages": 50, "returned": 5000 },
+      "budget": { "pages": 50, "returned": 5000 }
+    },
+    {
+      "name": "sse-fanout",
+      "baseline": { "clients": 1000, "closeCallbacks": 1000 },
+      "current": { "clients": 1000, "closeCallbacks": 1000 },
+      "budget": { "clients": 1000, "closeCallbacks": 1000 }
+    },
+    {
+      "name": "tool-loop",
+      "baseline": { "iterations": 8, "callsPerIteration": 8, "accepted": 32 },
+      "current": { "iterations": 8, "callsPerIteration": 8, "accepted": 32 },
+      "budget": { "iterations": 8, "callsPerIteration": 8, "accepted": 32 }
+    },
+    {
+      "name": "compaction",
+      "baseline": { "messages": 2000, "summaryTurns": 1, "inputBytesPerMessage": 40 },
+      "current": { "messages": 2000, "summaryTurns": 1, "inputBytesPerMessage": 40 },
+      "budget": { "messages": 2000, "summaryTurns": 1, "inputBytesPerMessage": 40 }
+    },
+    {
+      "name": "file-transfer",
+      "baseline": { "bytes": 196625, "dataChunks": 4, "operations": 2 },
+      "current": { "bytes": 196625, "dataChunks": 4, "operations": 2 },
+      "budget": { "bytes": 196625, "dataChunks": 4, "operations": 2 }
+    },
+    {
+      "name": "admin-load",
+      "baseline": { "total": 1200, "returned": 1000, "operations": 1 },
+      "current": { "total": 1200, "returned": 1000, "operations": 1 },
+      "budget": { "total": 1200, "returned": 1000, "operations": 1 }
+    },
+    {
+      "name": "startup",
+      "baseline": { "configured": 64, "providerInitializations": 64, "networkCalls": 0 },
+      "current": { "configured": 64, "providerInitializations": 64, "networkCalls": 0 },
+      "budget": { "configured": 64, "providerInitializations": 64, "networkCalls": 0 }
+    },
+    {
+      "name": "tool-doc-cache",
+      "baseline": { "maxEntries": 256 },
+      "current": { "maxEntries": 256 },
+      "budget": { "maxEntries": 256 }
+    }
+  ]
+}

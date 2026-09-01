@@ -1,0 +1,51 @@
+# Iris roadmap
+
+Only unfinished work belongs here. Durable constraints and implemented
+architecture live in `backend/memory.txt` and the linked design documents.
+
+## Next
+
+1. **Admin production hardening** — add MFA/recent-authentication checks for
+   sensitive actions, TLS disconnect rollback windows, reverse-proxy trust
+   configuration, and remote-headless security/recovery/packaging tests. See
+   [admin-control-plane.md](backend/docs/iris/backend/admin-control-plane.md).
+2. **Runtime resource policies** — add runtime-specific test-load commands,
+   measured VRAM/RAM reporting, GPU contention scheduling, unload-on-idle, and
+   fallback execution. Hardware discovery and profile declarations exist, but
+   policy enforcement is not complete.
+3. **Managed runtime/model downloads** — add signed/checksummed user-space
+   downloads, progress/cancellation, version pinning, and removal of owned
+   assets. External executable, endpoint, and model registration already work.
+4. **Audio platform coverage** — exercise file/attachment/handle playback,
+   native input, STT fallback, and device selection on Linux/macOS/Windows;
+   add explicit recording-persistence UI and suppress only confirmed-harmless
+   ALSA diagnostics.
+5. **ComfyUI workflow UX** — add graph-template editing, websocket progress,
+   gallery rendering, cancellation, and reusable parameter forms on top of the
+   persisted workflow and output APIs.
+6. **CLI API migration** — turn remaining user/provider/key/prompt commands
+   into authenticated clients of the shared admin API, retaining only a small
+   localhost recovery/bootstrap surface.
+7. **Prompt quality** — exercise tool discovery, setup guidance, memory
+   classification, and argument accuracy with small local models.
+8. **Thinking-tag handling** — split literal `<think>...</think>` output into
+   thought/text segments for templates that do not provide structured reasoning.
+
+9. **Default model onboarding** — the admin GUI now surfaces a default-model
+   selector, but the guided setup flow should still verify it before any chat
+   is attempted, and `iris setup` should refuse to finish without one.
+10. **Model generation timeout control** — add an Admin Control Plane setting
+   for the model-generation request timeout. Generation should default to
+   unlimited for slow hardware, with an explicit finite override available
+   when desired; cancellation and user interrupts must remain independent of
+   this timeout.
+
+## Maintenance
+
+- **Hono router workaround** — after a Hono upgrade, test static chat routes
+  beside `/auth/**`; merge `authApp` only if the trie collision is fixed.
+- **Tauri packaging** — run release builds on supported platforms and add CI
+  once the runtime/audio matrix is settled.
+- **Search provider** — add a robust local SearXNG or API-backed option.
+- **Multi-device profile sync** — decide which non-execution preferences may
+  sync while keeping machine execution settings local.

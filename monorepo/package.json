@@ -40,8 +40,8 @@
     "frontend"
   ],
   "devDependencies": {
-    "@tauri-apps/cli": "^2.11.4",
-    "prettier": "^3.9.6",
+    "@tauri-apps/cli": "^2.12.4",
+    "prettier": "^3.9.10",
     "prettier-plugin-svelte": "^4.1.1"
   }
 }
